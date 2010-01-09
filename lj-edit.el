@@ -278,13 +278,11 @@
                  (button_start -1)
                  (button_end -1)
                  (which_event n))
-    (if (<= n (string-to-number (gethash "events_count" hash)))
-        (progn
-          (insert-button (concat (gethash event_time hash) " - "
-                                 (if (gethash event_subject hash)
-                                     (gethash event_subject hash)
-                                   "(no subject)")) 'action (lambda (event) (lj-edit-post event_itemid event_community)))
-          (insert "\n")))))
+    (insert-button (concat (gethash event_time hash) " - "
+			   (if (gethash event_subject hash)
+			       (gethash event_subject hash)
+			     "(no subject)")) 'action (lambda (event) (lj-edit-post event_itemid event_community)))
+    (insert "\n")))
 
 (defun lj-get-last-n (n &optional community)
   (let* ((server (or lj-last-server lj-default-server
@@ -308,9 +306,11 @@
     (let ((response (lj-protocol-send-request server request)))
       (with-output-to-temp-buffer "lj-list"
         (set-buffer "lj-list")
-	(dotimes (i n)
-	  (lj-insert-entry-into-entry-list response (1+ i) community))
-        (print-help-return-message)))))
+	(let ((events-count (string-to-number (gethash "events_count" response)))
+	      (prop-count (string-to-number (gethash "prop_count" response))))
+	  (dotimes (i (min n events-count))
+	    (lj-insert-entry-into-entry-list response (1+ i) community))
+	  (print-help-return-message))))))
 
 ;;;###autoload
 (defun lj-browse-entries (&optional community)
