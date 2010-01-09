@@ -274,11 +274,13 @@
                  (event_time (concat event_string "_eventtime"))
                  (event_itemid_string (concat event_string "_itemid"))
                  (event_itemid (gethash event_itemid_string hash))
+		 (item_wordcount (gethash (concat "item_" event_itemid "_wordcount") hash "0"))
 		 (event_community community)
                  (button_start -1)
                  (button_end -1)
                  (which_event n))
     (insert-button (concat (gethash event_time hash) " - "
+			   "(" item_wordcount ") - "
 			   (if (gethash event_subject hash)
 			       (gethash event_subject hash)
 			     "(no subject)")) 'action (lambda (event) (lj-edit-post event_itemid event_community)))
@@ -308,6 +310,11 @@
         (set-buffer "lj-list")
 	(let ((events-count (string-to-number (gethash "events_count" response)))
 	      (prop-count (string-to-number (gethash "prop_count" response))))
+	  (dotimes (i prop-count)
+	    (when (string= (gethash (concat "prop_" (number-to-string i) "_name") response) "personifi_word_count")
+	      (puthash (concat "item_"
+			       (gethash (concat "prop_" (number-to-string i) "_itemid") response)
+			       "_wordcount") (gethash (concat "prop_" (number-to-string i) "_value") response) response)))
 	  (dotimes (i (min n events-count))
 	    (lj-insert-entry-into-entry-list response (1+ i) community))
 	  (print-help-return-message))))))
