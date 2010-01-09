@@ -284,8 +284,7 @@
                                  (if (gethash event_subject hash)
                                      (gethash event_subject hash)
                                    "(no subject)")) 'action (lambda (event) (lj-edit-post event_itemid event_community)))
-          (insert "\n")
-          (lj-insert-entry-into-entry-list hash (+ n 1) community)))))
+          (insert "\n")))))
 
 (defun lj-get-last-n (n &optional community)
   (let* ((server (or lj-last-server lj-default-server
@@ -309,7 +308,8 @@
     (let ((response (lj-protocol-send-request server request)))
       (with-output-to-temp-buffer "lj-list"
         (set-buffer "lj-list")
-        (lj-insert-entry-into-entry-list response 1 community)
+	(dotimes (i n)
+	  (lj-insert-entry-into-entry-list response (1+ i) community))
         (print-help-return-message)))))
 
 ;;;###autoload
