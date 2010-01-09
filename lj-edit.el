@@ -310,9 +310,16 @@
         (print-help-return-message)))))
 
 ;;;###autoload
-(defun lj-browse-entries ()
-  (interactive)
-  (lj-get-last-n 10))
+(defun lj-browse-entries (&optional community)
+  (interactive
+   (list
+    (let ((user (or lj-last-username lj-default-username ""))
+	  (server (or lj-last-server lj-default-server
+		      "www.livejournal.com")))
+      (completing-read
+       (concat "Community (leave empty for \"" user "\"): ")
+       (lj-user-get server user :access) nil t))))
+  (lj-get-last-n 10 community))
 
 ;;;###autoload
 (defalias 'lj-edit-last 'lj-edit-post)
