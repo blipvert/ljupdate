@@ -47,7 +47,7 @@
 (require 'lj-login)
 (require 'lj-util)
 
-(defun lj-edit-post (&optional edit-itemid)
+(defun lj-edit-post (&optional edit-itemid community)
   (interactive)
   (message (if edit-itemid
 	       (concat "Editing id: " edit-itemid)
@@ -71,6 +71,8 @@
     (add-to-list 'edit-request
                  (cons "auth_response"
                        (lj-md5 (concat edit-challenge (lj-password edit-server edit-username)))))
+    (when community
+      (add-to-list 'edit-request (cons "usejournal" community)))
     (let ((edit-response (lj-protocol-send-request edit-server edit-request)))
       (with-output-to-temp-buffer "lj-list"
         (set-buffer "lj-list")
@@ -266,12 +268,13 @@
         (insert "\n")
         (lj-list-props response (- n 1)))))
 
-(defun lj-insert-entry-into-entry-list (hash n)
+(defun lj-insert-entry-into-entry-list (hash n &optional community)
   (lexical-let* ((event_string (concat "events_" (number-to-string n)))
                  (event_subject (concat event_string "_subject"))
                  (event_time (concat event_string "_eventtime"))
                  (event_itemid_string (concat event_string "_itemid"))
                  (event_itemid (gethash event_itemid_string hash))
+		 (event_community community)
                  (button_start -1)
                  (button_end -1)
                  (which_event n))
@@ -280,9 +283,9 @@
           (insert-button (concat (gethash event_time hash) " - "
                                  (if (gethash event_subject hash)
                                      (gethash event_subject hash)
-                                   "(no subject)")) 'action (lambda (event) (lj-edit-post event_itemid)))
+                                   "(no subject)")) 'action (lambda (event) (lj-edit-post event_itemid event_community)))
           (insert "\n")
-          (lj-insert-entry-into-entry-list hash (+ n 1))))))
+          (lj-insert-entry-into-entry-list hash (+ n 1) community)))))
 
 (defun lj-get-last-n (n &optional community)
   (let* ((server (or lj-last-server lj-default-server
@@ -306,7 +309,7 @@
     (let ((response (lj-protocol-send-request server request)))
       (with-output-to-temp-buffer "lj-list"
         (set-buffer "lj-list")
-        (lj-insert-entry-into-entry-list response 1)
+        (lj-insert-entry-into-entry-list response 1 community)
         (print-help-return-message)))))
 
 ;;;###autoload
