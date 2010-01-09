@@ -284,7 +284,7 @@
           (insert "\n")
           (lj-insert-entry-into-entry-list hash (+ n 1))))))
 
-(defun lj-get-last-n (n)
+(defun lj-get-last-n (n &optional community)
   (let* ((server (or lj-last-server lj-default-server
                      "www.livejournal.com"))
          (username (or lj-last-username lj-default-username ""))
@@ -301,6 +301,8 @@
     (add-to-list 'request
                  (cons "auth_response"
                        (lj-md5 (concat challenge (lj-password server username)))))
+    (when community
+      (add-to-list 'request (cons "usejournal" community)))
     (let ((response (lj-protocol-send-request server request)))
       (with-output-to-temp-buffer "lj-list"
         (set-buffer "lj-list")
